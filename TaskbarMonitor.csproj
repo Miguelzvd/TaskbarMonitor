@@ -10,7 +10,7 @@
     <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
     <AssemblyName>TaskbarMonitor</AssemblyName>
     <RootNamespace>TaskbarMonitor</RootNamespace>
-    <Version>1.0.0</Version>
+    <Version>1.1.0</Version>
 
     <!-- alvo e modo de publicacao: os scripts e a CI usam so "dotnet publish -c Release" -->
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>

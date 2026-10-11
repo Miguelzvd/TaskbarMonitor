@@ -1,0 +1,50 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Publicar, gerar zip, instalador e notas
+        shell: pwsh
+        run: |
+          $ver = "${{ github.ref_name }}".TrimStart('v')
+
+          dotnet publish -c Release -r win-x64 --self-contained false -o publish
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+
+          Compress-Archive -Path 'publish\*' -DestinationPath "TaskbarMonitor-$ver-win-x64.zip" -Force
+
+          choco install innosetup -y --no-progress
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" "/DAppVersion=$ver" installer\TaskbarMonitor.iss
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+
+          $text = Get-Content CHANGELOG.md -Raw
+          $pattern = "(?s)## \[$([regex]::Escape($ver))\][^\n]*\n(.*?)(?=\n## \[|\z)"
+          $notes = [regex]::Match($text, $pattern).Groups[1].Value.Trim()
+          if (-not $notes) {
+            Write-Error "CHANGELOG.md sem notas para a versao $ver"
+            exit 1
+          }
+          Set-Content -Path notes.md -Value $notes -Encoding utf8
+          "VER=$ver" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+
+      - name: Criar release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "${{ github.ref_name }}" "TaskbarMonitor-$env:VER-win-x64.zip" "release\TaskbarMonitor-Setup-$env:VER.exe" --title "${{ github.ref_name }}" --notes-file notes.md

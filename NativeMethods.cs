@@ -33,6 +33,14 @@ internal static class NativeMethods
     [DllImport("user32.dll", CharSet = CharSet.Unicode)]
     public static extern int GetClassName(IntPtr hWnd, StringBuilder lpClassName, int nMaxCount);
 
+    [DllImport("dwmapi.dll")]
+    public static extern int DwmSetWindowAttribute(IntPtr hwnd, int attribute, ref int value, int size);
+
+    public const int DWMWA_WINDOW_CORNER_PREFERENCE = 33;
+    public const int DWMWA_BORDER_COLOR = 34;
+    public const int DWMWCP_ROUND = 2;
+    public const int DWMWA_COLOR_NONE = unchecked((int)0xFFFFFFFE);
+
     public static readonly IntPtr HWND_TOPMOST = new(-1);
 
     public const uint SWP_NOSIZE = 0x0001;

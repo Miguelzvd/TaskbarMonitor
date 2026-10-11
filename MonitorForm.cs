@@ -403,13 +403,13 @@ internal sealed class MonitorForm : Form
         var menu = new ContextMenuStrip();
 
         // ---- Modo ----
-        var mode = new ToolStripMenuItem("Modo");
+        var mode = new StyledMenuItem("Modo") { Icon = MenuStyle.Icons.Mode };
         _miDocked = new ToolStripMenuItem("Fixo na barra de tarefas", null, (_, _) => SetMode(PlacementMode.Docked));
         _miFree = new ToolStripMenuItem("Livre (arrastar)", null, (_, _) => SetMode(PlacementMode.Free));
         mode.DropDownItems.AddRange(new ToolStripItem[] { _miDocked, _miFree });
 
         // ---- Posição na barra (modo fixo) ----
-        _miDockPos = new ToolStripMenuItem("Posição na barra");
+        _miDockPos = new StyledMenuItem("Posição na barra") { Icon = MenuStyle.Icons.DockPosition };
         foreach (var (pos, label) in new[]
                  {
                      (DockPosition.Right, "Direita (junto à bandeja)"),
@@ -423,16 +423,16 @@ internal sealed class MonitorForm : Form
         }
 
         // ---- Travar (modo livre) ----
-        _miLock = new ToolStripMenuItem("Travar posição", null, (_, _) =>
+        _miLock = new StyledMenuItem("Travar posição", (_, _) =>
         {
             _settings.FreeLocked = !_settings.FreeLocked;
             _settings.Save();
             UpdateCursor();
             Invalidate();
-        });
+        }) { Icon = MenuStyle.Icons.Lock, IsSwitch = true };
 
         // ---- Intervalo ----
-        _miInterval = new ToolStripMenuItem("Intervalo de atualização");
+        _miInterval = new StyledMenuItem("Intervalo de atualização") { Icon = MenuStyle.Icons.Interval };
         foreach (int ms in new[] { 500, 1000, 2000, 5000 })
         {
             var item = new ToolStripMenuItem($"{ms / 1000.0:0.#} s") { Tag = ms };
@@ -446,7 +446,7 @@ internal sealed class MonitorForm : Form
         }
 
         // ---- Autostart ----
-        _miAutostart = new ToolStripMenuItem("Iniciar com o Windows");
+        _miAutostart = new StyledMenuItem("Iniciar com o Windows") { Icon = MenuStyle.Icons.Autostart, IsSwitch = true };
         _miAutostart.Click += (_, _) =>
         {
             bool target = !_miAutostart.Checked;
@@ -455,7 +455,7 @@ internal sealed class MonitorForm : Form
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
         };
 
-        var exit = new ToolStripMenuItem("Sair", null, (_, _) => Close());
+        var exit = new StyledMenuItem("Sair", (_, _) => Close()) { Icon = MenuStyle.Icons.Exit, IsDanger = true };
 
         menu.Items.AddRange(new ToolStripItem[]
         {
@@ -467,6 +467,7 @@ internal sealed class MonitorForm : Form
         });
 
         menu.Opening += (_, _) => SyncMenu();
+        MenuRenderer.Attach(menu, MenuStyle.From(_theme));
         return menu;
     }
 
@@ -520,6 +521,7 @@ internal sealed class MonitorForm : Form
     private void OnUserPreferenceChanged(object? sender, UserPreferenceChangedEventArgs e)
     {
         _theme = Theme.Detect();
+        if (ContextMenuStrip is ToolStripDropDownMenu menu) MenuRenderer.Attach(menu, MenuStyle.From(_theme));
         Invalidate();
     }
 

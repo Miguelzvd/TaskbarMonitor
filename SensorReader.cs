@@ -30,8 +30,14 @@ internal sealed class SensorReader : IDisposable
 
         var cpu = _computer.Hardware.FirstOrDefault(h => h.HardwareType == HardwareType.Cpu);
         var gpu = PickGpu();
-        var mem = _computer.Hardware.FirstOrDefault(h =>
-            h.HardwareType == HardwareType.Memory && Value(h, SensorType.Data, "Memory Used") is not null);
+        // O LibreHardwareMonitor expõe dois nós de memória: "Total Memory" (RAM física) e
+        // "Virtual Memory" (memória confirmada: RAM + arquivo de paginação). Queremos a RAM física,
+        // como o Gerenciador de Tarefas mostra; o virtual só serve de reserva.
+        var memNodes = _computer.Hardware
+            .Where(h => h.HardwareType == HardwareType.Memory && Value(h, SensorType.Data, "Memory Used") is not null)
+            .ToList();
+        var mem = memNodes.FirstOrDefault(h => !h.Name.Contains("Virtual", StringComparison.OrdinalIgnoreCase))
+                  ?? memNodes.FirstOrDefault();
 
         // CPU — AMD expõe "Core (Tctl/Tdie)", Intel expõe "CPU Package"
         float? cpuLoad = Value(cpu, SensorType.Load, "CPU Total");

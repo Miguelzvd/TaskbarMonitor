@@ -4,3 +4,4 @@ publish/
 build.log
 *.user
 .vs/
+release/

@@ -21,7 +21,7 @@ Requer o **.NET 8 SDK** (`winget install Microsoft.DotNet.SDK.8`).
 build.bat
 ```
 
-Saída: `publish\TaskbarMonitor.exe`.
+Saída: `publish\TaskbarMonitor.exe`, um arquivo único (~5 MB) que roda direto com dois cliques. Ele usa o .NET 8 Desktop Runtime instalado na máquina. O `build.bat` pede para fechar o app antes, porque o exe em execução fica travado, e limpa a pasta `publish` a cada build.
 
 Para instalar de forma fixa (necessário para a inicialização automática, porque a tarefa agendada guarda o caminho do exe), use o instalador da release ou rode `deploy-local.bat` como administrador. Ambos instalam em `C:\Program Files\TaskbarMonitor`.
 

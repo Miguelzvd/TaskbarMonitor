@@ -90,7 +90,22 @@ As configurações ficam em `%AppData%\TaskbarMonitor\settings.json` e não são
 | Arquivo | Papel |
 |---|---|
 | `SensorReader.cs` | Leitura dos sensores via `LibreHardwareMonitorLib` |
-| `MonitorForm.cs` | Janela, posicionamento sobre a taskbar, renderização, menu |
+| `MonitorForm.cs` | Janela, posicionamento sobre a taskbar, renderização, montagem do menu |
+| `Theme.cs` | Cores claras e escuras, seguindo o tema do Windows |
+| `MenuStyle.cs` | Valores visuais do menu de contexto: cores, medidas, fonte e ícones |
+| `MenuRenderer.cs` | Desenho do menu: realce, ícones, interruptores, setas e cantos arredondados |
+| `Shapes.cs` | Formas de desenho compartilhadas (retângulo arredondado) |
 | `Autostart.cs` | Tarefa agendada (logon, elevada) |
 | `AppSettings.cs` | Persistência de offset/intervalo |
 | `NativeMethods.cs` | P/Invoke Win32 |
+
+## Scripts
+
+| Script | O que faz |
+|---|---|
+| `run.bat` | Compila em Debug e abre o app como administrador |
+| `build.bat` | Gera `publish\TaskbarMonitor.exe` (arquivo único) |
+| `deploy-local.bat` | Compila e instala em `C:\Program Files\TaskbarMonitor` (como administrador) |
+| `release.bat X.Y.Z` | Publica uma versão: zip local, commit, tag e envio ao GitHub |
+
+O alvo (`win-x64`, dependente do .NET 8) e o arquivo único ficam no `TaskbarMonitor.csproj`, então todos usam apenas `dotnet publish -c Release`.

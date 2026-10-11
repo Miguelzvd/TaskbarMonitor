@@ -23,7 +23,7 @@ if not errorlevel 1 (
 rem Limpa a saida anterior para nao sobrar DLL de builds antigos.
 if exist publish rmdir /s /q publish
 
-dotnet publish -c Release -r win-x64 --self-contained false -o publish > build.log 2>&1
+dotnet publish -c Release -o publish > build.log 2>&1
 set ERR=%ERRORLEVEL%
 type build.log
 

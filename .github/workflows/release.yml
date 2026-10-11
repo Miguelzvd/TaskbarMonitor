@@ -23,7 +23,7 @@ jobs:
         run: |
           $ver = "${{ github.ref_name }}".TrimStart('v')
 
-          dotnet publish -c Release -r win-x64 --self-contained false -o publish
+          dotnet publish -c Release -o publish
           if ($LASTEXITCODE -ne 0) { exit 1 }
 
           Compress-Archive -Path 'publish\*' -DestinationPath "TaskbarMonitor-$ver-win-x64.zip" -Force

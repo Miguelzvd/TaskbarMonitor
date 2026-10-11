@@ -47,12 +47,13 @@ if errorlevel 1 goto fail
 set "OUT=release\TaskbarMonitor-%VER%"
 if exist "%OUT%" rmdir /s /q "%OUT%"
 echo Gerando publish em %OUT%...
-dotnet publish -c Release -r win-x64 --self-contained false -o "%OUT%"
+dotnet publish -c Release -o "%OUT%"
 if errorlevel 1 goto fail
 
 echo Gerando zip...
 powershell -NoProfile -Command "Compress-Archive -Path '%OUT%\*' -DestinationPath '%OUT%-win-x64.zip' -Force"
 if errorlevel 1 goto fail
+rmdir /s /q "%OUT%"
 
 git diff --quiet -- TaskbarMonitor.csproj
 if errorlevel 1 (

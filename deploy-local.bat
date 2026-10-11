@@ -21,7 +21,7 @@ set "STAGE=%TEMP%\TaskbarMonitor-deploy"
 if exist "%STAGE%" rmdir /s /q "%STAGE%"
 
 echo Compilando...
-dotnet publish -c Release -r win-x64 --self-contained false -o "%STAGE%"
+dotnet publish -c Release -o "%STAGE%"
 if errorlevel 1 (
   echo [falhou] Publish com erro. Nada foi alterado na instalacao.
   pause
@@ -38,6 +38,9 @@ if errorlevel 8 (
   pause
   exit /b 1
 )
+
+rem Limpa a pasta temporaria da publicacao.
+rmdir /s /q "%STAGE%"
 
 schtasks /Query /TN TaskbarMonitor >nul 2>&1
 if not errorlevel 1 (

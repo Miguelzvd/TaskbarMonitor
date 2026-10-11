@@ -75,7 +75,7 @@ internal sealed class MenuRenderer : ToolStripRenderer
     {
         var g = e.Graphics;
         g.SmoothingMode = SmoothingMode.AntiAlias;
-        using var path = RoundedRect(new Rectangle(0, 0, e.ToolStrip.Width - 1, e.ToolStrip.Height - 1), MenuStyle.PanelRadius);
+        using var path = Shapes.RoundedRect(new Rectangle(0, 0, e.ToolStrip.Width - 1, e.ToolStrip.Height - 1), MenuStyle.PanelRadius);
         using var pen = new Pen(_s.Border);
         g.DrawPath(pen, path);
     }
@@ -104,7 +104,7 @@ internal sealed class MenuRenderer : ToolStripRenderer
 
         if (hot)
         {
-            using var path = RoundedRect(bounds, MenuStyle.ItemRadius);
+            using var path = Shapes.RoundedRect(bounds, MenuStyle.ItemRadius);
             using var brush = new SolidBrush(_s.Hover);
             g.FillPath(brush, path);
         }
@@ -168,7 +168,7 @@ internal sealed class MenuRenderer : ToolStripRenderer
         int w = MenuStyle.SwitchWidth, h = MenuStyle.SwitchHeight;
         var track = new Rectangle(bounds.Right - 12 - w, (bounds.Height - h) / 2, w, h);
 
-        using (var path = RoundedRect(track, h / 2))
+        using (var path = Shapes.RoundedRect(track, h / 2))
         using (var brush = new SolidBrush(on ? _s.Accent : _s.SwitchOff))
             g.FillPath(brush, path);
 
@@ -200,21 +200,9 @@ internal sealed class MenuRenderer : ToolStripRenderer
         }
         else
         {
-            using var path = RoundedRect(new Rectangle(Point.Empty, dropDown.Size), MenuStyle.PanelRadius);
+            using var path = Shapes.RoundedRect(new Rectangle(Point.Empty, dropDown.Size), MenuStyle.PanelRadius);
             dropDown.Region = new Region(path);
         }
-    }
-
-    private static GraphicsPath RoundedRect(Rectangle r, int radius)
-    {
-        int d = Math.Min(radius * 2, Math.Min(r.Width, r.Height));
-        var path = new GraphicsPath();
-        path.AddArc(r.Left, r.Top, d, d, 180, 90);
-        path.AddArc(r.Right - d, r.Top, d, d, 270, 90);
-        path.AddArc(r.Right - d, r.Bottom - d, d, d, 0, 90);
-        path.AddArc(r.Left, r.Bottom - d, d, d, 90, 90);
-        path.CloseFigure();
-        return path;
     }
 
     private static string ResolveIconFontName()

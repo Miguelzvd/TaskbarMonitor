@@ -21,7 +21,9 @@ Requer o **.NET 8 SDK** (`winget install Microsoft.DotNet.SDK.8`).
 build.bat
 ```
 
-Saída: `publish\TaskbarMonitor.exe`. Mova a pasta `publish` para um lugar fixo (ex.: `C:\Tools\TaskbarMonitor`) **antes** de ativar a inicialização automática, porque a tarefa agendada guarda o caminho do exe.
+Saída: `publish\TaskbarMonitor.exe`.
+
+Para instalar de forma fixa (necessário para a inicialização automática, porque a tarefa agendada guarda o caminho do exe), use o instalador da release ou rode `deploy-local.bat` como administrador. Ambos instalam em `C:\Program Files\TaskbarMonitor`.
 
 ## Uso
 
@@ -45,6 +47,36 @@ Configurações ficam em `%AppData%\TaskbarMonitor\settings.json`.
 ## Temperatura da CPU aparecendo `--°C`
 
 As versões recentes do LibreHardwareMonitor leem MSRs da CPU pelo driver **PawnIO**, que substituiu o antigo WinRing0, hoje bloqueado pelo Defender. Se a temperatura da CPU não aparecer, instale o PawnIO (https://pawnio.eu) e reinicie o app. Uso, GPU, VRAM e RAM funcionam sem ele.
+
+## Rodar em desenvolvimento
+
+```bat
+run.bat
+```
+
+Compila em Debug e abre o app como administrador. Se a versão instalada estiver aberta, feche-a antes (botão direito → Sair), porque o app só permite uma instância.
+
+## Publicar uma versão
+
+1. Escreva a nova seção no `CHANGELOG.md` (ex.: `## [1.1.0] - AAAA-MM-DD`) e faça commit.
+2. Na branch `main`, rode a partir da pasta do projeto:
+
+   ```bat
+   release.bat 1.1.0
+   ```
+
+O script valida a versão, a branch e o changelog, atualiza o `TaskbarMonitor.csproj`, gera `release\TaskbarMonitor-1.1.0-win-x64.zip`, cria o commit e a tag `v1.1.0` e envia ao GitHub. O GitHub Actions então cria a release com o zip e o instalador `TaskbarMonitor-Setup-1.1.0.exe` anexados. Como o repositório é privado, a release fica visível só para quem tem acesso a ele.
+
+## Atualizar uma instalação
+
+1. Baixe `TaskbarMonitor-Setup-X.Y.Z.exe` da release (repositório privado: é preciso estar logado no GitHub).
+2. Execute o instalador. Ele fecha o app, atualiza os arquivos e mantém a inicialização automática funcionando.
+
+No PC de desenvolvimento, `deploy-local.bat` (como administrador) faz o mesmo a partir do código-fonte.
+
+O zip da release continua disponível para uso portátil, sem instalação, mas a inicialização automática guarda o caminho do exe, então extraia em uma pasta fixa.
+
+As configurações ficam em `%AppData%\TaskbarMonitor\settings.json` e não são afetadas. O instalador exige o .NET 8 Desktop Runtime.
 
 ## Limitações conhecidas
 

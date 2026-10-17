@@ -54,6 +54,12 @@ internal static class NativeMethods
     public static extern IntPtr GetWindow(IntPtr hWnd, uint uCmd);
 
     public const uint GW_HWNDPREV = 3; // janela imediatamente acima na ordem Z
+    public const uint GW_OWNER = 4;
+
+    [DllImport("user32.dll", EntryPoint = "SetWindowLongPtrW")]
+    public static extern IntPtr SetWindowLongPtr(IntPtr hWnd, int nIndex, IntPtr dwNewLong);
+
+    public const int GWLP_HWNDPARENT = -8; // define o DONO (owner) da janela, não o pai
 
     public delegate void WinEventProc(IntPtr hWinEventHook, uint eventType, IntPtr hwnd,
         int idObject, int idChild, uint idEventThread, uint dwmsEventTime);

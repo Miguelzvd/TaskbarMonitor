@@ -92,7 +92,8 @@ Refatorações sem mudança de comportamento não precisam subir a versão.
 - Se a temperatura da CPU aparecer `--°C`, falta o driver PawnIO (https://pawnio.eu).
 
 **Janela e z-order (`MonitorForm.cs`)**
-- A taskbar também é topmost e sobe por cima do monitor quando clicada. Mitigação atual: hook `SetWinEventHook(EVENT_SYSTEM_FOREGROUND)` + uma thread (`TopLoop`, ~2 ms, com `timeBeginPeriod(1)`) que só chama `SetWindowPos` quando a taskbar passou por cima, inserindo o monitor logo acima dela e **atrás** de quem estiver acima (painel da setinha da bandeja). **Não volte a forçar `HWND_TOPMOST` em loop**: brigava com o painel da bandeja e causava pisca.
+- **Modo fixo: a taskbar é a DONA (owner) da janela** (`SyncOwner`, `SetWindowLongPtr(GWLP_HWNDPARENT)`). O Windows mantém janelas "owned" acima da dona no mesmo instante em que ela sobe, o que elimina o pisca ao clicar na taskbar (medido: 0 de 193 leituras abaixo, contra 143 sem dono). Mudar o dono não reordena sozinho, por isso `SyncOwner` chama `SetWindowPos` em seguida. No modo livre e no monitor de fuga o dono é removido. Se o Windows recusar o dono (`_ownerFailed`), cai na thread abaixo. **Janelas "owned" são destruídas com a dona:** se o Explorer reiniciar, `OnHandleDestroyed` relança o app e sai.
+- Reserva (modo livre, monitor de fuga ou dono recusado): a taskbar também é topmost e sobe por cima do monitor quando clicada. Mitigação: hook `SetWinEventHook(EVENT_SYSTEM_FOREGROUND)` + uma thread (`TopLoop`, ~2 ms, com `timeBeginPeriod(1)`) que só chama `SetWindowPos` quando a taskbar passou por cima, inserindo o monitor logo acima dela e **atrás** de quem estiver acima (painel da setinha da bandeja). **Não volte a forçar `HWND_TOPMOST` em loop**: brigava com o painel da bandeja e causava pisca.
 - A thread só usa o handle em cache (`_hwnd`) e flags `volatile`; não acesse propriedades de controle nela.
 - Tela cheia: só conta se o app em tela cheia estiver no monitor "de casa" do widget (taskbar no modo fixo, posição salva no modo livre). Com outro monitor, o widget vai para ele (`AwayLocation`) e volta depois. Com um monitor só, esconde. Janelas do shell (`explorer`, `ShellExperienceHost`, `StartMenuExperienceHost`, `SearchHost`, `SearchApp`, `TextInputHost`) **não** contam como tela cheia, e a tela cheia só vale após 2 leituras seguidas (~0,6 s).
 - A janela é `WS_EX_NOACTIVATE`, então o menu de contexto não recebe cliques fora. `OnMenuWatchTick` vigia o mouse e fecha o menu ao clicar fora (cliques na própria janela o Windows já trata).
@@ -112,7 +113,8 @@ Refatorações sem mudança de comportamento não precisam subir a versão.
 - Pensado para taskbar **horizontal embaixo**. Taskbar vertical ou no topo não é tratada.
 - No modo fixo, usa só a taskbar principal (`Shell_TrayWnd`). A taskbar secundária só é usada como destino quando o widget foge de uma tela cheia.
 - No modo fixo **Centro** no Win11 com ícones centralizados, o monitor cobre ícones fixados.
-- Pode restar um pisca de poucos milissegundos quando a taskbar é clicada. A solução definitiva seria tornar a janela filha da taskbar (`SetParent`), só viável no modo fixo e ainda não testada.
+- No modo livre, se o widget estiver sobre a taskbar, ele não é "owned": pode restar um pisca de poucos milissegundos ao clicar nela (a thread de 2 ms atenua).
+- O dono (owner) foi medido de fora com um processo sem elevação e **confirmado pelo Miguel no app real** (administrador) na 1.4.5: o pisca acabou. Se um dia o Windows recusar o dono, o código cai sozinho na thread (`_ownerFailed`).
 - Em modo livre, arrastar fica desativado enquanto o widget está no monitor de fuga.
 
 ## Como verificar uma mudança

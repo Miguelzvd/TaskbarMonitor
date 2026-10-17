@@ -2,6 +2,12 @@
 
 Cada versão tem uma seção `## [X.Y.Z] - AAAA-MM-DD`. O `release.bat` exige essa seção antes de publicar, e o texto dela vira as notas da release no GitHub.
 
+## [1.4.5] - 2026-10-17
+
+- Fim do pisca ao clicar na taskbar: no modo fixo, a taskbar passa a ser a dona (owner) da janela do monitor. O Windows mantém janelas "owned" acima da dona no mesmo instante em que ela sobe, então o monitor nunca fica atrás dela. Medido: 0 de 193 leituras abaixo da taskbar em 4 cliques, contra 143 sem isso.
+- Se o Explorer reiniciar (o que destrói janelas "owned"), o app se relança sozinho.
+- No modo livre e no monitor de fuga continua valendo a thread de 2 ms da 1.4.4.
+
 ## [1.4.4] - 2026-10-17
 
 - Pisca ao clicar na setinha da bandeja: medido, o monitor ficava ~15 ms atrás da taskbar, que sobe por cima dele ao ser clicada. Agora uma thread leve confere a ordem das janelas a cada ~2 ms e o traz de volta quase na hora.

@@ -29,6 +29,12 @@ internal sealed class MonitorForm : Form
     private volatile bool _topStop;
     private volatile bool _topSuppressed; // menu aberto ou arrastando: não mexer na ordem Z
     private IntPtr _hwnd;
+
+    // No modo fixo a taskbar é a DONA (owner) da nossa janela: o Windows mantém janelas "owned" sempre
+    // acima da dona, no mesmo instante em que ela sobe, então a taskbar não consegue nos cobrir.
+    private bool _owned;       // dono atual é a taskbar
+    private bool _ownerFailed; // o Windows recusou o dono: não insistir (a thread acima segue como reserva)
+    private bool _closing;
     private IntPtr _foregroundHook;
     private WinEventProc? _foregroundProc; // referência mantida para o GC não coletar o delegate
 
@@ -182,8 +188,63 @@ internal sealed class MonitorForm : Form
             ApplyPosition();
         }
 
+        SyncOwner();
         if (!_dragging) Reposition();
         KeepOnTop();
+    }
+
+    /// <summary>
+    /// Fixo na taskbar principal: a taskbar vira dona da janela. Livre ou em outro monitor: sem dono.
+    /// Mudar o dono não reordena sozinho, então reposicionamos logo em seguida.
+    /// </summary>
+    private void SyncOwner()
+    {
+        IntPtr me = _hwnd;
+        if (me == IntPtr.Zero) return;
+
+        bool wantOwned = _settings.Mode == PlacementMode.Docked && _awayScreen is null;
+        if (!wantOwned) _ownerFailed = false;
+        else if (_ownerFailed) return;
+
+        IntPtr tray = wantOwned ? FindWindow("Shell_TrayWnd", null) : IntPtr.Zero;
+        if (GetWindow(me, GW_OWNER) == tray) { _owned = tray != IntPtr.Zero; return; }
+
+        SetWindowLongPtr(me, GWLP_HWNDPARENT, tray);
+        SetWindowPos(me, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+
+        _owned = tray != IntPtr.Zero && GetWindow(me, GW_OWNER) == tray;
+        if (wantOwned && !_owned) _ownerFailed = true;
+    }
+
+    protected override void OnHandleCreated(EventArgs e)
+    {
+        base.OnHandleCreated(e);
+        _hwnd = Handle;
+    }
+
+    protected override void OnFormClosing(FormClosingEventArgs e)
+    {
+        _closing = true;
+        base.OnFormClosing(e);
+    }
+
+    /// <summary>
+    /// O Windows destrói janelas "owned" junto com a dona. Se a taskbar foi destruída (o Explorer
+    /// reiniciou), nossa janela some e o processo ficaria órfão: relançamos o app e saímos.
+    /// </summary>
+    protected override void OnHandleDestroyed(EventArgs e)
+    {
+        base.OnHandleDestroyed(e);
+        if (!_owned || _closing || RecreatingHandle) return;
+
+        try
+        {
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("cmd.exe",
+                $"/c ping -n 4 127.0.0.1 >nul & start \"\" \"{Environment.ProcessPath}\"")
+            { CreateNoWindow = true, UseShellExecute = false });
+        }
+        catch { /* sem relançar, ao menos não deixa um processo sem janela */ }
+        Environment.Exit(0);
     }
 
     /// <summary>
@@ -264,6 +325,7 @@ internal sealed class MonitorForm : Form
         Point p = _awayScreen is { } away ? AwayLocation(away, h)
                 : _settings.Mode == PlacementMode.Docked ? DockedLocation(h) : FreeLocation();
         if (p != Location || Height != h) SetBounds(p.X, p.Y, Width, h);
+        SyncOwner();
     }
 
     private Point DockedLocation(int h)

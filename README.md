@@ -18,12 +18,12 @@ CPU  23%   GPU  41%  VRAM 68%   RAM  62%
 Requer o **.NET 8 SDK** (`winget install Microsoft.DotNet.SDK.8`).
 
 ```bat
-build.bat
+scripts\build.bat
 ```
 
 Saída: `publish\TaskbarMonitor.exe`, um arquivo único (~5 MB) que roda direto com dois cliques. Ele usa o .NET 8 Desktop Runtime instalado na máquina. O `build.bat` pede para fechar o app antes, porque o exe em execução fica travado, e limpa a pasta `publish` a cada build.
 
-Para instalar de forma fixa (necessário para a inicialização automática, porque a tarefa agendada guarda o caminho do exe), use o instalador da release ou rode `deploy-local.bat` como administrador. Ambos instalam em `C:\Program Files\TaskbarMonitor`.
+Para instalar de forma fixa (necessário para a inicialização automática, porque a tarefa agendada guarda o caminho do exe), use o instalador da release ou rode `scripts\deploy-local.bat` como administrador. Ambos instalam em `C:\Program Files\TaskbarMonitor`. Para gerar o instalador localmente (precisa do Inno Setup: `winget install JRSoftware.InnoSetup`), rode `scripts\build-installer.bat`: ele cria `release\TaskbarMonitor-Setup-X.Y.Z.exe` e apaga os setups de versões antigas.
 
 ## Uso
 
@@ -51,7 +51,7 @@ As versões recentes do LibreHardwareMonitor leem MSRs da CPU pelo driver **Pawn
 ## Rodar em desenvolvimento
 
 ```bat
-run.bat
+scripts\run.bat
 ```
 
 Compila em Debug e abre o app como administrador. Se a versão instalada estiver aberta, feche-a antes (botão direito → Sair), porque o app só permite uma instância.
@@ -62,7 +62,7 @@ Compila em Debug e abre o app como administrador. Se a versão instalada estiver
 2. Na branch `main`, rode a partir da pasta do projeto:
 
    ```bat
-   release.bat 1.1.0
+   scripts\release.bat 1.1.0
    ```
 
 O script valida a versão, a branch e o changelog, atualiza o `TaskbarMonitor.csproj`, gera `release\TaskbarMonitor-1.1.0-win-x64.zip`, cria o commit e a tag `v1.1.0` e envia ao GitHub. O GitHub Actions então cria a release com o zip e o instalador `TaskbarMonitor-Setup-1.1.0.exe` anexados. Como o repositório é privado, a release fica visível só para quem tem acesso a ele.
@@ -72,7 +72,7 @@ O script valida a versão, a branch e o changelog, atualiza o `TaskbarMonitor.cs
 1. Baixe `TaskbarMonitor-Setup-X.Y.Z.exe` da release (repositório privado: é preciso estar logado no GitHub).
 2. Execute o instalador. Ele fecha o app, atualiza os arquivos e mantém a inicialização automática funcionando.
 
-No PC de desenvolvimento, `deploy-local.bat` (como administrador) faz o mesmo a partir do código-fonte.
+No PC de desenvolvimento, `scripts\deploy-local.bat` (como administrador) faz o mesmo a partir do código-fonte.
 
 O zip da release continua disponível para uso portátil, sem instalação, mas a inicialização automática guarda o caminho do exe, então extraia em uma pasta fixa.
 
@@ -87,25 +87,45 @@ As configurações ficam em `%AppData%\TaskbarMonitor\settings.json` e não são
 
 ## Estrutura
 
-| Arquivo | Papel |
-|---|---|
-| `SensorReader.cs` | Leitura dos sensores via `LibreHardwareMonitorLib` |
-| `MonitorForm.cs` | Janela, posicionamento sobre a taskbar, renderização, montagem do menu |
-| `Theme.cs` | Cores claras e escuras, seguindo o tema do Windows |
-| `MenuStyle.cs` | Valores visuais do menu de contexto: cores, medidas, fonte e ícones |
-| `MenuRenderer.cs` | Desenho do menu: realce, ícones, interruptores, setas e cantos arredondados |
-| `Shapes.cs` | Formas de desenho compartilhadas (retângulo arredondado) |
-| `Autostart.cs` | Tarefa agendada (logon, elevada) |
-| `AppSettings.cs` | Persistência de offset/intervalo |
-| `NativeMethods.cs` | P/Invoke Win32 |
+```
+TaskbarMonitor/
+├─ TaskbarMonitor.csproj
+├─ src/                       todo o código-fonte
+│  ├─ Program.cs              ponto de entrada (instância única)
+│  ├─ Sensors/
+│  │  └─ SensorReader.cs      leitura dos sensores via LibreHardwareMonitorLib
+│  ├─ UI/
+│  │  ├─ MonitorForm.cs       janela, posicionamento sobre a taskbar, renderização, montagem do menu
+│  │  ├─ Theme.cs             cores claras e escuras, seguindo o tema do Windows
+│  │  ├─ MenuStyle.cs         valores visuais do menu: cores, medidas, fonte e ícones
+│  │  ├─ MenuRenderer.cs      desenho do menu: realce, ícones, interruptores, setas, cantos
+│  │  └─ Shapes.cs            formas de desenho compartilhadas (retângulo arredondado)
+│  ├─ Settings/
+│  │  └─ AppSettings.cs       persistência das configurações (settings.json)
+│  └─ Platform/
+│     ├─ NativeMethods.cs     P/Invoke Win32
+│     └─ Autostart.cs         tarefa agendada de inicialização (logon, elevada)
+├─ assets/                    app.ico e app.manifest
+├─ installer/                 script do Inno Setup (TaskbarMonitor.iss)
+├─ scripts/                   .bat de build, instalação e release, e o gerador do ícone
+├─ .github/workflows/         release automática no GitHub
+├─ README.md
+└─ CHANGELOG.md
+```
+
+As pastas só organizam os arquivos: o namespace continua sendo `TaskbarMonitor` para todos.
 
 ## Scripts
+
+Ficam em `scripts\` e podem ser executados de qualquer pasta (cada um entra sozinho na raiz do projeto).
 
 | Script | O que faz |
 |---|---|
 | `run.bat` | Compila em Debug e abre o app como administrador |
 | `build.bat` | Gera `publish\TaskbarMonitor.exe` (arquivo único) |
+| `build-installer.bat` | Gera `release\TaskbarMonitor-Setup-X.Y.Z.exe` (Inno Setup) e apaga setups antigos |
 | `deploy-local.bat` | Compila e instala em `C:\Program Files\TaskbarMonitor` (como administrador) |
 | `release.bat X.Y.Z` | Publica uma versão: zip local, commit, tag e envio ao GitHub |
+| `make-icon.ps1` | Regenera `assets\app.ico` |
 
 O alvo (`win-x64`, dependente do .NET 8) e o arquivo único ficam no `TaskbarMonitor.csproj`, então todos usam apenas `dotnet publish -c Release`.

@@ -1,6 +1,6 @@
 @echo off
 setlocal
-cd /d "%~dp0"
+cd /d "%~dp0.."
 
 rem Instancia unica: se o app instalado estiver aberto, o exe de Debug fecharia sem aviso.
 tasklist /fi "imagename eq TaskbarMonitor.exe" | find /i "TaskbarMonitor.exe" >nul
@@ -18,5 +18,5 @@ if errorlevel 1 (
 )
 
 rem O app exige administrador pelo manifest, entao o exe e iniciado elevado.
-powershell -NoProfile -WindowStyle Hidden -Command "Start-Process -FilePath '%~dp0bin\Debug\net8.0-windows\TaskbarMonitor.exe' -Verb RunAs"
+powershell -NoProfile -WindowStyle Hidden -Command "Start-Process -FilePath '%CD%\bin\Debug\net8.0-windows\TaskbarMonitor.exe' -Verb RunAs"
 endlocal

@@ -18,6 +18,8 @@ Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
 UninstallDisplayName=Taskbar Monitor
+SetupIconFile=..\assets\app.ico
+UninstallDisplayIcon={app}\TaskbarMonitor.exe
 CloseApplications=no
 
 [Languages]
@@ -30,7 +32,7 @@ Source: "..\publish\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs cr
 Name: "{autoprograms}\Taskbar Monitor"; Filename: "{app}\TaskbarMonitor.exe"
 
 [Run]
-Filename: "{app}\TaskbarMonitor.exe"; Description: "Abrir o Taskbar Monitor"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\TaskbarMonitor.exe"; Description: "Abrir o Taskbar Monitor"; Flags: nowait postinstall skipifsilent shellexec
 
 ; O Inno Setup executa o [UninstallRun] de baixo para cima: o taskkill roda antes de apagar a tarefa.
 [UninstallRun]
@@ -79,8 +81,9 @@ begin
     { Se a inicializacao automatica estava ativa, aponta a tarefa para o exe instalado. }
     if Exec(ExpandConstant('{sys}\schtasks.exe'), '/Query /TN TaskbarMonitor', '', SW_HIDE, ewWaitUntilTerminated, ResultCode)
        and (ResultCode = 0) then
-      Exec(ExpandConstant('{sys}\schtasks.exe'),
-           ExpandConstant('/Change /TN TaskbarMonitor /TR "\"{app}\TaskbarMonitor.exe\""'),
+      { Nao usar "schtasks /Change /TR": ele pede a senha do usuario e, sem console, trava o instalador. }
+      Exec(ExpandConstant('{sys}\WindowsPowerShell\v1.0\powershell.exe'),
+           ExpandConstant('-NoProfile -NonInteractive -Command "Set-ScheduledTask -TaskName TaskbarMonitor -Action (New-ScheduledTaskAction -Execute ''{app}\TaskbarMonitor.exe'')"'),
            '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
   end;
 end;

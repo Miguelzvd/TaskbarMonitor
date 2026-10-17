@@ -21,6 +21,27 @@ internal sealed class MonitorForm : Form
     private readonly AppSettings _settings = AppSettings.Load();
     private readonly System.Windows.Forms.Timer _uiTimer = new() { Interval = 300 };
     private readonly ToolTip _toolTip = new() { InitialDelay = 400, ShowAlways = true };
+
+    // A taskbar também é topmost e sobe por cima de nós quando clicada (ex.: setinha da bandeja).
+    // Reafirmamos o topo na hora em que o foco muda (hook) e numa thread que confere a cada ~2 ms,
+    // porque o sumiço dura só o tempo de a taskbar subir e nós descermos de volta.
+    private Thread? _topThread;
+    private volatile bool _topStop;
+    private volatile bool _topSuppressed; // menu aberto ou arrastando: não mexer na ordem Z
+    private IntPtr _hwnd;
+    private IntPtr _foregroundHook;
+    private WinEventProc? _foregroundProc; // referência mantida para o GC não coletar o delegate
+
+    // Animação de carregamento (esqueleto com brilho) enquanto não chega a primeira leitura.
+    private const int ShimmerPeriodMs = 1500;
+    private readonly System.Windows.Forms.Timer _loadingTimer = new() { Interval = 16 };
+    private readonly System.Diagnostics.Stopwatch _loadingClock = System.Diagnostics.Stopwatch.StartNew();
+    private float _shimmerX; // posição do brilho em px (coordenadas do cliente)
+
+    // A janela não é ativada (WS_EX_NOACTIVATE), então o menu não recebe o clique fora sozinho.
+    // Enquanto o menu está aberto, vigiamos o mouse e fechamos ao clicar fora dele.
+    private readonly System.Windows.Forms.Timer _menuWatch = new() { Interval = 30 };
+    private bool _menuPrevDown;
     private System.Threading.Timer? _sensorTimer;
     private SensorReader? _reader;
     private int _reading;
@@ -46,7 +67,11 @@ internal sealed class MonitorForm : Form
     private readonly Dictionary<DockPosition, ToolStripMenuItem> _miDockPositions = new();
     private ToolStripMenuItem _miInterval = null!;
 
-    private bool CanDrag => _settings.Mode == PlacementMode.Free && !_settings.FreeLocked;
+    // Monitor para onde fugimos quando um app em tela cheia ocupa o monitor "de casa"; null = em casa.
+    private Screen? _awayScreen;
+    private int _fullscreenTicks;
+
+    private bool CanDrag => _settings.Mode == PlacementMode.Free && !_settings.FreeLocked && _awayScreen is null;
 
     public MonitorForm()
     {
@@ -60,6 +85,8 @@ internal sealed class MonitorForm : Form
 
         ContextMenuStrip = BuildMenu();
         _uiTimer.Tick += OnUiTick;
+        _loadingTimer.Tick += OnLoadingTick;
+        _menuWatch.Tick += OnMenuWatchTick;
         SystemEvents.UserPreferenceChanged += OnUserPreferenceChanged;
         SystemEvents.DisplaySettingsChanged += OnDisplaySettingsChanged;
     }
@@ -82,6 +109,14 @@ internal sealed class MonitorForm : Form
         Reposition(force: true);
         UpdateCursor();
         _uiTimer.Start();
+        _hwnd = Handle;
+        timeBeginPeriod(1);
+        _topThread = new Thread(TopLoop) { IsBackground = true, Name = "KeepOnTop" };
+        _topThread.Start();
+        _foregroundProc = (_, _, _, _, _, _, _) => KeepOnTop();
+        _foregroundHook = SetWinEventHook(EVENT_SYSTEM_FOREGROUND, EVENT_SYSTEM_FOREGROUND, IntPtr.Zero,
+            _foregroundProc, 0, 0, WINEVENT_OUTOFCONTEXT | WINEVENT_SKIPOWNPROCESS);
+        _loadingTimer.Start();
         _sensorTimer = new System.Threading.Timer(_ => ReadSensors(), null, 0, _settings.IntervalMs);
     }
 
@@ -98,13 +133,14 @@ internal sealed class MonitorForm : Form
             {
                 _snap = snap;
                 _sensorError = null;
+                _loadingTimer.Stop();
                 UpdateTooltip();
                 Invalidate();
             });
         }
         catch (Exception ex)
         {
-            PostToUi(() => { _sensorError = ex.Message; UpdateTooltip(); });
+            PostToUi(() => { _sensorError = ex.Message; _loadingTimer.Stop(); UpdateTooltip(); Invalidate(); });
         }
         finally
         {
@@ -122,15 +158,79 @@ internal sealed class MonitorForm : Form
 
     private void OnUiTick(object? sender, EventArgs e)
     {
-        bool fullscreen = IsForegroundFullscreen();
-        if (fullscreen && Visible) { Hide(); return; }
-        if (!fullscreen && !Visible) Show();
-        if (!Visible) return;
+        // Tela cheia só nos incomoda se estiver no monitor onde o widget mora. Com outro monitor
+        // disponível, o widget vai para ele; com um monitor só, não há para onde ir e ele se esconde.
+        // Exige 2 leituras seguidas (~0,6 s) para ignorar telas cheias passageiras e evitar o "pisca".
+        var rawFullscreen = ForegroundFullscreenScreen();
+        _fullscreenTicks = rawFullscreen is null ? 0 : _fullscreenTicks + 1;
+        var fullscreenScreen = _fullscreenTicks >= 2 ? rawFullscreen : null;
+        Screen? away = null;
+        bool hide = false;
+        if (fullscreenScreen is not null && SameScreen(fullscreenScreen, HomeScreen()))
+        {
+            away = Screen.AllScreens.FirstOrDefault(s => !SameScreen(s, fullscreenScreen));
+            hide = away is null;
+        }
+
+        if (hide) { if (Visible) Hide(); return; }
+        if (!Visible) Show();
+
+        if (!SameScreen(away, _awayScreen))
+        {
+            _awayScreen = away;
+            UpdateCursor();
+            ApplyPosition();
+        }
 
         if (!_dragging) Reposition();
-        // A taskbar também é topmost e "sobe" quando clicada; reafirma nossa posição.
-        if (!_dragging && !(ContextMenuStrip?.Visible ?? false))
-            SetWindowPos(Handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+        KeepOnTop();
+    }
+
+    /// <summary>
+    /// Garante que ficamos logo acima da taskbar na ordem Z (ela também é topmost e sobe quando clicada).
+    /// Só mexemos quando a taskbar passou por cima de nós, e nos colocamos atrás de quem estiver acima dela
+    /// (ex.: o painel da setinha da bandeja). Forçar HWND_TOPMOST o tempo todo brigava com esse painel
+    /// e fazia o monitor piscar ao fechá-lo.
+    /// </summary>
+    private void KeepOnTop()
+    {
+        _topSuppressed = _dragging || (ContextMenuStrip?.Visible ?? false);
+        RaiseAboveTaskbarIfNeeded();
+    }
+
+    /// <summary>Roda numa thread própria: confere a ordem Z a cada ~2 ms (barato: só lê a ordem das janelas).</summary>
+    private void TopLoop()
+    {
+        while (!_topStop)
+        {
+            try { RaiseAboveTaskbarIfNeeded(); } catch { /* janela sendo fechada */ }
+            Thread.Sleep(2);
+        }
+    }
+
+    /// <summary>Seguro para chamar de qualquer thread: usa só o handle em cache e flags voláteis.</summary>
+    private void RaiseAboveTaskbarIfNeeded()
+    {
+        IntPtr me = _hwnd;
+        if (me == IntPtr.Zero || _topSuppressed || !IsWindowVisible(me)) return;
+
+        IntPtr tray = FindWindow("Shell_TrayWnd", null);
+        IntPtr insertAfter = HWND_TOPMOST;
+        if (tray != IntPtr.Zero)
+        {
+            if (IsAbove(me, tray)) return; // já estamos acima da taskbar: nada a fazer
+            IntPtr above = GetWindow(tray, GW_HWNDPREV);
+            if (above != IntPtr.Zero) insertAfter = above;
+        }
+        SetWindowPos(me, insertAfter, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+    }
+
+    /// <summary>true se <paramref name="me"/> está acima de <paramref name="other"/> na ordem Z.</summary>
+    private static bool IsAbove(IntPtr me, IntPtr other)
+    {
+        for (IntPtr w = GetWindow(other, GW_HWNDPREV); w != IntPtr.Zero; w = GetWindow(w, GW_HWNDPREV))
+            if (w == me) return true;
+        return false;
     }
 
     /// <summary>Lê a geometria da taskbar e reaplica a posição se algo mudou.</summary>
@@ -161,7 +261,8 @@ internal sealed class MonitorForm : Form
         int h = Math.Clamp(_anchor.Height - 8, 24, 56);
         if (h != _layoutHeight) RecalcLayout(h);
 
-        Point p = _settings.Mode == PlacementMode.Docked ? DockedLocation(h) : FreeLocation();
+        Point p = _awayScreen is { } away ? AwayLocation(away, h)
+                : _settings.Mode == PlacementMode.Docked ? DockedLocation(h) : FreeLocation();
         if (p != Location || Height != h) SetBounds(p.X, p.Y, Width, h);
     }
 
@@ -176,6 +277,52 @@ internal sealed class MonitorForm : Form
         };
         x = Math.Clamp(x, _taskbar.Left, Math.Max(_taskbar.Left, _taskbar.Right - Width));
         return new Point(x, y);
+    }
+
+    private static bool SameScreen(Screen? a, Screen? b) => a?.DeviceName == b?.DeviceName;
+
+    /// <summary>Monitor onde o widget mora: o da taskbar (modo fixo) ou o da posição salva (modo livre).</summary>
+    private Screen HomeScreen()
+    {
+        var primary = Screen.PrimaryScreen ?? Screen.AllScreens[0];
+        if (_settings.Mode == PlacementMode.Docked)
+            return _taskbar.IsEmpty ? primary : Screen.FromRectangle(_taskbar);
+
+        var center = new Point((_settings.FreeX ?? Left) + Width / 2, (_settings.FreeY ?? Top) + Height / 2);
+        return Screen.FromPoint(center);
+    }
+
+    /// <summary>Posição no monitor de fuga: junto à bandeja da taskbar dele, ou no canto inferior direito.</summary>
+    private Point AwayLocation(Screen screen, int h)
+    {
+        var bounds = screen.Bounds;
+
+        // Monitor da taskbar principal: mesma âncora do modo fixo à direita.
+        if (!_taskbar.IsEmpty && SameScreen(Screen.FromRectangle(_taskbar), screen))
+        {
+            int px = _anchor.Right - Width - EdgeMargin;
+            int py = _taskbar.Top + (_taskbar.Height - h) / 2;
+            return new Point(Math.Clamp(px, bounds.Left, Math.Max(bounds.Left, bounds.Right - Width)), py);
+        }
+
+        // Taskbar secundária desse monitor (se houver): fica à esquerda da bandeja/relógio dela.
+        IntPtr tray = IntPtr.Zero;
+        while ((tray = FindWindowEx(IntPtr.Zero, tray, "Shell_SecondaryTrayWnd", null)) != IntPtr.Zero)
+        {
+            if (!GetWindowRect(tray, out var r)) continue;
+            var rect = Rectangle.FromLTRB(r.Left, r.Top, r.Right, r.Bottom);
+            if (!bounds.Contains(rect.Left + rect.Width / 2, rect.Top + rect.Height / 2)) continue;
+
+            int right = rect.Right - 140; // Win11 não tem TrayNotifyWnd na secundária: reserva o espaço do relógio
+            IntPtr notify = FindWindowEx(tray, IntPtr.Zero, "TrayNotifyWnd", null);
+            if (notify != IntPtr.Zero && GetWindowRect(notify, out var nr) && nr.Width > 0) right = nr.Left;
+
+            int x = Math.Clamp(right - Width - EdgeMargin, bounds.Left, Math.Max(bounds.Left, bounds.Right - Width));
+            return new Point(x, rect.Top + (rect.Height - h) / 2);
+        }
+
+        // Sem taskbar nesse monitor: canto inferior direito.
+        return new Point(bounds.Right - Width - 12, bounds.Bottom - h - 12);
     }
 
     private Point FreeLocation()
@@ -199,17 +346,36 @@ internal sealed class MonitorForm : Form
         return new Point(x, y);
     }
 
-    private static bool IsForegroundFullscreen()
+    /// <summary>Monitor ocupado por um app em tela cheia em primeiro plano, ou null se não há nenhum.</summary>
+    private static Screen? ForegroundFullscreenScreen()
     {
         IntPtr fg = GetForegroundWindow();
-        if (fg == IntPtr.Zero) return false;
+        if (fg == IntPtr.Zero) return null;
 
         string cls = ClassNameOf(fg);
-        if (cls is "Progman" or "WorkerW" or "Shell_TrayWnd" or "Shell_SecondaryTrayWnd") return false;
-        if (!GetWindowRect(fg, out var r)) return false;
+        if (cls is "Progman" or "WorkerW" or "Shell_TrayWnd" or "Shell_SecondaryTrayWnd") return null;
+        if (!GetWindowRect(fg, out var r)) return null;
 
-        var screen = Screen.FromHandle(fg).Bounds;
-        return r.Left <= screen.Left && r.Top <= screen.Top && r.Right >= screen.Right && r.Bottom >= screen.Bottom;
+        var screen = Screen.FromHandle(fg);
+        var b = screen.Bounds;
+        bool full = r.Left <= b.Left && r.Top <= b.Top && r.Right >= b.Right && r.Bottom >= b.Bottom;
+        return full && !IsShellWindow(fg) ? screen : null;
+    }
+
+    /// <summary>
+    /// Janelas do próprio Windows (bandeja/setinha de ícones ocultos, Iniciar, Pesquisa, Central de Ações…)
+    /// podem ter o tamanho do monitor inteiro, mas não são apps em tela cheia.
+    /// </summary>
+    private static bool IsShellWindow(IntPtr hWnd)
+    {
+        GetWindowThreadProcessId(hWnd, out uint pid);
+        try
+        {
+            using var p = System.Diagnostics.Process.GetProcessById((int)pid);
+            return p.ProcessName is "explorer" or "ShellExperienceHost" or "StartMenuExperienceHost"
+                or "SearchHost" or "SearchApp" or "TextInputHost";
+        }
+        catch { return false; }
     }
 
     // ===================== layout / desenho =====================
@@ -305,10 +471,56 @@ internal sealed class MonitorForm : Form
 
     private void DrawValue(Graphics g, string text, Color color, int x, int y, int width, int height)
     {
+        if (Loading)
+        {
+            // 2ª linha (temperatura / memória) usa barras um pouco mais largas que a 1ª.
+            bool secondRow = y + height / 2 > ClientSize.Height / 2;
+            DrawSkeleton(g, x, y, width, height, secondRow ? 0.8f : 0.6f);
+            return;
+        }
+
         var rect = new Rectangle(x, y, width, height);
         TextRenderer.DrawText(g, text, _valueFont, rect, color,
             TextFormatFlags.Right | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPadding | TextFormatFlags.SingleLine);
     }
+
+    private bool Loading => _snap is null && _sensorError is null;
+
+    private void OnLoadingTick(object? sender, EventArgs e)
+    {
+        if (!Loading) { _loadingTimer.Stop(); return; }
+
+        // O brilho atravessa a janela de ponta a ponta, com folga nas bordas para entrar e sair suave.
+        float t = _loadingClock.ElapsedMilliseconds % ShimmerPeriodMs / (float)ShimmerPeriodMs;
+        _shimmerX = -Width * 0.3f + t * Width * 1.6f;
+        if (Visible) Invalidate();
+    }
+
+    /// <summary>Barra arredondada no lugar do valor; o brilho passa por ela em onda.</summary>
+    private void DrawSkeleton(Graphics g, int x, int y, int width, int height, float ratio)
+    {
+        int bh = Math.Max(5, height / 2 - 1);
+        int bw = Math.Max(bh, (int)(width * ratio));
+        var rect = new Rectangle(x + width - bw, y + (height - bh) / 2, bw, bh); // à direita, como o texto
+
+        float d = (rect.Left + rect.Width / 2f - _shimmerX) / (Width * 0.22f);
+        float glow = MathF.Exp(-d * d); // gaussiana: 1 sob o brilho, ~0 longe dele
+
+        var baseColor = Blend(_theme.Background, _theme.Foreground, 0.14f);
+        var glowColor = Blend(_theme.Background, _theme.Foreground, 0.42f);
+        using var brush = new SolidBrush(Blend(baseColor, glowColor, glow));
+        using var path = Shapes.RoundedRect(rect, bh / 2);
+
+        var oldMode = g.SmoothingMode;
+        g.SmoothingMode = SmoothingMode.AntiAlias;
+        g.FillPath(brush, path);
+        g.SmoothingMode = oldMode;
+    }
+
+    private static Color Blend(Color a, Color b, float t) => Color.FromArgb(
+        (int)(a.R + (b.R - a.R) * t),
+        (int)(a.G + (b.G - a.G) * t),
+        (int)(a.B + (b.B - a.B) * t));
 
     private static string Pct(float? v) => v is float f ? $"{f:0}%" : "--";
     private static string Temp(float? v) => v is float f ? $"{f:0}°C" : "--°C";
@@ -357,6 +569,7 @@ internal sealed class MonitorForm : Form
         base.OnMouseDown(e);
         if (e.Button != MouseButtons.Left || !CanDrag) return;
         _dragging = true;
+        _topSuppressed = true;
         _dragStartCursor = Cursor.Position;
         _dragStartLocation = Location;
         Capture = true;
@@ -378,6 +591,7 @@ internal sealed class MonitorForm : Form
         base.OnMouseUp(e);
         if (!_dragging) return;
         _dragging = false;
+        _topSuppressed = ContextMenuStrip?.Visible ?? false;
         Capture = false;
         _settings.FreeX = Left;
         _settings.FreeY = Top;
@@ -455,8 +669,36 @@ internal sealed class MonitorForm : Form
         });
 
         menu.Opening += (_, _) => SyncMenu();
+        menu.Opened += (_, _) => { _topSuppressed = true; _menuPrevDown = AnyMouseButtonDown(); _menuWatch.Start(); };
+        menu.Closed += (_, _) => { _topSuppressed = _dragging; _menuWatch.Stop(); };
         MenuRenderer.Attach(menu, MenuStyle.From(_theme));
         return menu;
+    }
+
+    private static bool AnyMouseButtonDown() =>
+        IsKeyDown(VK_LBUTTON) || IsKeyDown(VK_RBUTTON) || IsKeyDown(VK_MBUTTON);
+
+    private static bool IsKeyDown(int vk) => (GetAsyncKeyState(vk) & 0x8000) != 0;
+
+    private static bool IsInsideMenu(ToolStripDropDown dropDown, Point screenPoint) =>
+        dropDown.Bounds.Contains(screenPoint) ||
+        dropDown.Items.OfType<ToolStripMenuItem>().Any(i => i.DropDown.Visible && IsInsideMenu(i.DropDown, screenPoint));
+
+    /// <summary>Fecha o menu (e submenus) quando um botão do mouse é pressionado fora dele.</summary>
+    private void OnMenuWatchTick(object? sender, EventArgs e)
+    {
+        var menu = ContextMenuStrip;
+        if (menu is null || !menu.Visible) { _menuWatch.Stop(); return; }
+
+        bool down = AnyMouseButtonDown();
+        bool pressed = down && !_menuPrevDown; // só na transição, para não fechar por um clique já em curso
+        _menuPrevDown = down;
+        if (!pressed) return;
+
+        var cursor = Cursor.Position;
+        // Cliques na própria janela do monitor o Windows já trata sozinho.
+        if (IsInsideMenu(menu, cursor) || Bounds.Contains(cursor)) return;
+        menu.Close(ToolStripDropDownCloseReason.AppClicked);
     }
 
     /// <summary>Atualiza checks/visibilidade conforme o estado atual antes de abrir.</summary>
@@ -525,7 +767,13 @@ internal sealed class MonitorForm : Form
         {
             SystemEvents.UserPreferenceChanged -= OnUserPreferenceChanged;
             SystemEvents.DisplaySettingsChanged -= OnDisplaySettingsChanged;
+            if (_foregroundHook != IntPtr.Zero) UnhookWinEvent(_foregroundHook);
             _uiTimer.Dispose();
+            _topStop = true;
+            _topThread?.Join(200);
+            timeEndPeriod(1);
+            _loadingTimer.Dispose();
+            _menuWatch.Dispose();
             _sensorTimer?.Dispose();
             _toolTip.Dispose();
             _reader?.Dispose();

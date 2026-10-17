@@ -47,7 +47,7 @@ internal sealed class SensorReader : IDisposable
                          ?? Max(cpu, SensorType.Temperature, _ => true);
 
         // GPU
-        float? gpuLoad = Value(gpu, SensorType.Load, "GPU Core", "D3D 3D");
+        float? gpuLoad = Value(gpu, SensorType.Load, "D3D 3D", "GPU Core");
         float? gpuTemp = Value(gpu, SensorType.Temperature, "GPU Core")
                          ?? Max(gpu, SensorType.Temperature, _ => true);
         float? vramUsed = Value(gpu, SensorType.SmallData, "GPU Memory Used", "D3D Dedicated Memory Used");

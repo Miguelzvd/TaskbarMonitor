@@ -1,6 +1,6 @@
 @echo off
 setlocal
-cd /d "%~dp0"
+cd /d "%~dp0.."
 
 where dotnet >nul 2>nul || (
   echo [erro] .NET SDK nao encontrado. Instale com:  winget install Microsoft.DotNet.SDK.8
@@ -29,9 +29,9 @@ type build.log
 
 echo.
 if %ERR% neq 0 (
-  echo [falhou] Detalhes em: %~dp0build.log
+  echo [falhou] Detalhes em: %CD%\build.log
 ) else (
-  echo Pronto: %~dp0publish\TaskbarMonitor.exe  ^(arquivo unico^)
+  echo Pronto: %CD%\publish\TaskbarMonitor.exe  ^(arquivo unico^)
 )
 pause
 endlocal

@@ -41,7 +41,7 @@ Download the package for your system. No administrator rights are needed to run 
 
 - **Debian, Ubuntu, Mint:**
   ```sh
-  curl -LO https://github.com/Miguelzvd/TaskbarMonitor/releases/latest/download/taskbar-monitor-linux-x64.deb
+  curl -fLO https://github.com/Miguelzvd/TaskbarMonitor/releases/latest/download/taskbar-monitor-linux-x64.deb
   sudo apt install ./taskbar-monitor-linux-x64.deb
   ```
 - **Fedora, openSUSE:**
@@ -50,7 +50,7 @@ Download the package for your system. No administrator rights are needed to run 
   ```
 - **Any distribution:**
   ```sh
-  curl -LO https://github.com/Miguelzvd/TaskbarMonitor/releases/latest/download/TaskbarMonitor-x86_64.AppImage
+  curl -fLO https://github.com/Miguelzvd/TaskbarMonitor/releases/latest/download/TaskbarMonitor-x86_64.AppImage
   chmod +x TaskbarMonitor-x86_64.AppImage && ./TaskbarMonitor-x86_64.AppImage
   ```
 

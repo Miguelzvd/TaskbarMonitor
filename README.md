@@ -26,7 +26,7 @@ Download the latest version from the [releases page](https://github.com/Miguelzv
 
 Needs **Windows 11**, the **.NET 8 Desktop Runtime** and **administrator** rights. Designed for a **horizontal bottom** taskbar.
 
-1. Download `TaskbarMonitor-Setup-X.Y.Z.exe`.
+1. Download the installer, `TaskbarMonitor-Setup-<version>.exe`, from the page above.
 2. Run the installer. It installs into `C:\Program Files\TaskbarMonitor`, closes the previous version and keeps autostart working.
 
 Want to run without installing? The `.zip` is portable, but extract it to a fixed folder: autostart stores the exe path.
@@ -39,9 +39,22 @@ If the CPU temperature shows `--°C`, install [PawnIO](https://pawnio.eu) and re
 
 Download the package for your system. No administrator rights are needed to run the app.
 
-- **Debian, Ubuntu, Mint:** `sudo apt install ./taskbar-monitor-X.Y.Z-linux-x64.deb`
-- **Fedora, openSUSE:** `sudo dnf install ./taskbar-monitor-X.Y.Z-linux-x64.rpm`
-- **Any distribution:** download `TaskbarMonitor-X.Y.Z-x86_64.AppImage`, then `chmod +x` it and run it.
+- **Debian, Ubuntu, Mint:**
+  ```sh
+  curl -LO https://github.com/Miguelzvd/TaskbarMonitor/releases/latest/download/taskbar-monitor-linux-x64.deb
+  sudo apt install ./taskbar-monitor-linux-x64.deb
+  ```
+- **Fedora, openSUSE:**
+  ```sh
+  sudo dnf install https://github.com/Miguelzvd/TaskbarMonitor/releases/latest/download/taskbar-monitor-linux-x64.rpm
+  ```
+- **Any distribution:**
+  ```sh
+  curl -LO https://github.com/Miguelzvd/TaskbarMonitor/releases/latest/download/TaskbarMonitor-x86_64.AppImage
+  chmod +x TaskbarMonitor-x86_64.AppImage && ./TaskbarMonitor-x86_64.AppImage
+  ```
+
+Running the same command again updates to the newest version.
 
 Then open **Taskbar Monitor** from your applications menu, or run `taskbar-monitor`. It sits on your desktop panel and can start at login (right-click → **Start at login**). The kitten needs a desktop with transparency effects enabled.
 

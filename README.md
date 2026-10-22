@@ -8,7 +8,7 @@
   <img src="https://img.shields.io/badge/Windows-11-0078D4?logo=windows11&logoColor=fff" alt="Windows 11">
   <img src="https://img.shields.io/badge/Linux-deb_%7C_rpm_%7C_AppImage-FCC624?logo=linux&logoColor=000" alt="Linux">
   <img src="https://img.shields.io/badge/Windows-.NET_8_Desktop_Runtime-512BD4?logo=dotnet&logoColor=fff" alt=".NET 8 Desktop Runtime">
-  <img src="https://img.shields.io/badge/version-1.10.0-blue" alt="Version">
+  <img src="https://img.shields.io/badge/version-1.11.0-blue" alt="Version">
   <img src="https://img.shields.io/badge/Windows-administrator-orange" alt="Requires administrator">
 </p>
 
@@ -126,6 +126,7 @@ Everything is configured from the **right-click menu**:
 | **Lock position** *(free mode)* | Fixes it where you dropped it. A small dot in the corner shows it's locked |
 | **Style** | Classic, Progress bars, Rings, Sparklines or Pills with icons |
 | **Companion** | Off, or a gray, white, black or orange cat |
+| **Text size** | Small, Normal, Large or Extra large |
 | **Update interval** | 0.5 / 1 / 2 / 5 s |
 | **Start with Windows** | Elevated scheduled task, no UAC at logon |
 

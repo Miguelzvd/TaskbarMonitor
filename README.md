@@ -8,7 +8,7 @@
   <img src="https://img.shields.io/badge/Windows-11-0078D4?logo=windows11&logoColor=fff" alt="Windows 11">
   <img src="https://img.shields.io/badge/Linux-deb_%7C_rpm_%7C_AppImage-FCC624?logo=linux&logoColor=000" alt="Linux">
   <img src="https://img.shields.io/badge/Windows-.NET_8_Desktop_Runtime-512BD4?logo=dotnet&logoColor=fff" alt=".NET 8 Desktop Runtime">
-  <img src="https://img.shields.io/badge/version-1.8.0-blue" alt="Version">
+  <img src="https://img.shields.io/badge/version-1.9.0-blue" alt="Version">
   <img src="https://img.shields.io/badge/Windows-administrator-orange" alt="Requires administrator">
 </p>
 

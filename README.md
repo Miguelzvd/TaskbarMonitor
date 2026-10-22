@@ -1,45 +1,49 @@
 <h1 align="center">Taskbar Monitor</h1>
 
 <p align="center">
-  Real-time hardware monitor anchored to the Windows 11 taskbar, with a pixel-art kitten for company
+  Real-time hardware monitor anchored to the Windows 11 taskbar or the Linux desktop panel, with a pixel-art kitten for company
 </p>
 
 <p align="center">
   <img src="https://img.shields.io/badge/Windows-11-0078D4?logo=windows11&logoColor=fff" alt="Windows 11">
-  <img src="https://img.shields.io/badge/.NET-8_Desktop_Runtime-512BD4?logo=dotnet&logoColor=fff" alt=".NET 8 Desktop Runtime">
+  <img src="https://img.shields.io/badge/Linux-deb_%7C_rpm_%7C_AppImage-FCC624?logo=linux&logoColor=000" alt="Linux">
+  <img src="https://img.shields.io/badge/Windows-.NET_8_Desktop_Runtime-512BD4?logo=dotnet&logoColor=fff" alt=".NET 8 Desktop Runtime">
   <img src="https://img.shields.io/badge/version-1.8.0-blue" alt="Version">
-  <img src="https://img.shields.io/badge/privilege-administrator-orange" alt="Requires administrator">
+  <img src="https://img.shields.io/badge/Windows-administrator-orange" alt="Requires administrator">
 </p>
 
 <p align="center">
   <img src="media/hero.gif" alt="Monitor on the taskbar with CPU, GPU and RAM usage updating and the cat walking on top" width="700">
 </p>
 
-> [!NOTE]
-> Needs **Windows 11**, the **.NET 8 Desktop Runtime**, and runs **as administrator** (CPU temperature needs a driver). Designed for a **horizontal bottom** taskbar. If the CPU temperature shows `--°C`, install [PawnIO](https://pawnio.eu) and restart the app.
-
 ---
 
 ## Installation
 
-1. Download `TaskbarMonitor-Setup-X.Y.Z.exe` from the [latest release](https://github.com/Miguelzvd/TaskbarMonitor/releases/latest).
+Download the latest version from the [releases page](https://github.com/Miguelzvd/TaskbarMonitor/releases/latest).
+
+### Windows
+
+Needs **Windows 11**, the **.NET 8 Desktop Runtime** and **administrator** rights. Designed for a **horizontal bottom** taskbar.
+
+1. Download `TaskbarMonitor-Setup-X.Y.Z.exe`.
 2. Run the installer. It installs into `C:\Program Files\TaskbarMonitor`, closes the previous version and keeps autostart working.
 
-Want to run without installing? The release zip is portable, but extract it to a fixed folder: autostart stores the exe path.
+Want to run without installing? The `.zip` is portable, but extract it to a fixed folder: autostart stores the exe path.
 
 Missing .NET? `winget install Microsoft.DotNet.DesktopRuntime.8`.
 
+If the CPU temperature shows `--°C`, install [PawnIO](https://pawnio.eu) and restart the app.
+
 ### Linux
 
-There is also a version for Linux. Download the `.deb`, `.rpm` or `.AppImage` from the release:
+Download the package for your system. No administrator rights are needed to run the app.
 
-```sh
-sudo apt install ./taskbar-monitor-X.Y.Z-linux-x64.deb      # Debian, Ubuntu, Mint
-sudo dnf install ./taskbar-monitor-X.Y.Z-linux-x64.rpm      # Fedora, openSUSE
-chmod +x TaskbarMonitor-X.Y.Z-x86_64.AppImage && ./TaskbarMonitor-X.Y.Z-x86_64.AppImage
-```
+- **Debian, Ubuntu, Mint:** `sudo apt install ./taskbar-monitor-X.Y.Z-linux-x64.deb`
+- **Fedora, openSUSE:** `sudo dnf install ./taskbar-monitor-X.Y.Z-linux-x64.rpm`
+- **Any distribution:** download `TaskbarMonitor-X.Y.Z-x86_64.AppImage`, then `chmod +x` it and run it.
 
-Same widget, styles, tooltips and kitten, and it doesn't need administrator rights. It sits on your desktop panel and can start at login. The kitten needs a desktop with transparency effects enabled.
+Then open **Taskbar Monitor** from your applications menu, or run `taskbar-monitor`. It sits on your desktop panel and can start at login (right-click → **Start at login**). The kitten needs a desktop with transparency effects enabled.
 
 ## Features
 
@@ -125,3 +129,6 @@ Settings live in `%AppData%\TaskbarMonitor\settings.json`.
 - Hybrid GPUs: the dedicated one has priority (NVIDIA > AMD > Intel).
 - Linux: moving away from fullscreen apps may not work on every desktop setup.
 
+## License
+
+[MIT](LICENSE)

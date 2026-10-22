@@ -7,7 +7,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Windows-11-0078D4?logo=windows11&logoColor=fff" alt="Windows 11">
   <img src="https://img.shields.io/badge/.NET-8_Desktop_Runtime-512BD4?logo=dotnet&logoColor=fff" alt=".NET 8 Desktop Runtime">
-  <img src="https://img.shields.io/badge/version-1.7.0-blue" alt="Version">
+  <img src="https://img.shields.io/badge/version-1.8.0-blue" alt="Version">
   <img src="https://img.shields.io/badge/privilege-administrator-orange" alt="Requires administrator">
 </p>
 
@@ -28,6 +28,18 @@
 Want to run without installing? The release zip is portable, but extract it to a fixed folder: autostart stores the exe path.
 
 Missing .NET? `winget install Microsoft.DotNet.DesktopRuntime.8`.
+
+### Linux
+
+There is also a version for Linux. Download the `.deb`, `.rpm` or `.AppImage` from the release:
+
+```sh
+sudo apt install ./taskbar-monitor-X.Y.Z-linux-x64.deb      # Debian, Ubuntu, Mint
+sudo dnf install ./taskbar-monitor-X.Y.Z-linux-x64.rpm      # Fedora, openSUSE
+chmod +x TaskbarMonitor-X.Y.Z-x86_64.AppImage && ./TaskbarMonitor-X.Y.Z-x86_64.AppImage
+```
+
+Same widget, styles, tooltips and kitten, and it doesn't need administrator rights. It sits on your desktop panel and can start at login. The kitten needs a desktop with transparency effects enabled.
 
 ## Features
 
@@ -111,4 +123,5 @@ Settings live in `%AppData%\TaskbarMonitor\settings.json`.
 - In docked **Center** mode with centered icons on Windows 11, the monitor covers pinned icons. If the default position overlaps an icon, switch to free mode and drag it.
 - In free mode, over the taskbar, a flicker of a few milliseconds may still happen when clicking it.
 - Hybrid GPUs: the dedicated one has priority (NVIDIA > AMD > Intel).
+- Linux: moving away from fullscreen apps may not work on every desktop setup.
 

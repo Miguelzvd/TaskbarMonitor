@@ -27,11 +27,11 @@ Download the latest version from the [releases page](https://github.com/Miguelzv
 Needs **Windows 11**, the **.NET 8 Desktop Runtime** and **administrator** rights. Designed for a **horizontal bottom** taskbar.
 
 1. Download the installer, `TaskbarMonitor-Setup-<version>.exe`, from the page above.
-2. Run the installer. It installs into `C:\Program Files\TaskbarMonitor`, closes the previous version and keeps autostart working. If the .NET 8 Desktop Runtime or [PawnIO](https://pawnio.eu) (needed for the CPU temperature) is missing, it downloads and installs them for you.
+2. Run the installer. It installs into `C:\Program Files\TaskbarMonitor`, closes the previous version and keeps autostart working. It also installs [PawnIO](https://pawnio.eu), needed for the CPU temperature, and downloads the .NET 8 Desktop Runtime if it is missing.
 
 Want to run without installing? The `.zip` is portable, but extract it to a fixed folder: autostart stores the exe path. In that case, install what's missing yourself: `winget install Microsoft.DotNet.DesktopRuntime.8` and [PawnIO](https://pawnio.eu).
 
-If the CPU temperature shows `--°C`, install [PawnIO](https://pawnio.eu) and restart the app.
+If the CPU temperature is missing, right-click the widget and choose **Enable CPU temperature** (or, with the `.zip`, install [PawnIO](https://pawnio.eu) and restart the app).
 
 ### Linux
 

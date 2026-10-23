@@ -123,6 +123,7 @@ Everything is configured from the **right-click menu**:
 | **Mode → Free (drag)** | Drag with the left button anywhere on screen (open/closed hand cursor) |
 | **Lock position** *(free mode)* | Fixes it where you dropped it. A small dot in the corner shows it's locked |
 | **Style** | Classic, Progress bars, Rings, Sparklines or Pills with icons |
+| **Show** | Pick what the widget shows: CPU, GPU and RAM, and inside them the CPU and GPU temperatures, the VRAM and the RAM amount |
 | **Companion** | Off, or a gray, white, black or orange cat |
 | **Text size** | Small, Normal, Large or Extra large |
 | **Update interval** | 0.5 / 1 / 2 / 5 s |

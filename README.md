@@ -8,7 +8,7 @@
   <img src="https://img.shields.io/badge/Windows-11-0078D4?logo=windows11&logoColor=fff" alt="Windows 11">
   <img src="https://img.shields.io/badge/Linux-deb_%7C_rpm_%7C_AppImage-FCC624?logo=linux&logoColor=000" alt="Linux">
   <img src="https://img.shields.io/badge/Windows-.NET_8_Desktop_Runtime-512BD4?logo=dotnet&logoColor=fff" alt=".NET 8 Desktop Runtime">
-  <img src="https://img.shields.io/badge/version-1.11.0-blue" alt="Version">
+  <img src="https://img.shields.io/badge/version-1.12.0-blue" alt="Version">
   <img src="https://img.shields.io/badge/Windows-administrator-orange" alt="Requires administrator">
 </p>
 
@@ -27,11 +27,9 @@ Download the latest version from the [releases page](https://github.com/Miguelzv
 Needs **Windows 11**, the **.NET 8 Desktop Runtime** and **administrator** rights. Designed for a **horizontal bottom** taskbar.
 
 1. Download the installer, `TaskbarMonitor-Setup-<version>.exe`, from the page above.
-2. Run the installer. It installs into `C:\Program Files\TaskbarMonitor`, closes the previous version and keeps autostart working.
+2. Run the installer. It installs into `C:\Program Files\TaskbarMonitor`, closes the previous version and keeps autostart working. If the .NET 8 Desktop Runtime or [PawnIO](https://pawnio.eu) (needed for the CPU temperature) is missing, it downloads and installs them for you.
 
-Want to run without installing? The `.zip` is portable, but extract it to a fixed folder: autostart stores the exe path.
-
-Missing .NET? `winget install Microsoft.DotNet.DesktopRuntime.8`.
+Want to run without installing? The `.zip` is portable, but extract it to a fixed folder: autostart stores the exe path. In that case, install what's missing yourself: `winget install Microsoft.DotNet.DesktopRuntime.8` and [PawnIO](https://pawnio.eu).
 
 If the CPU temperature shows `--°C`, install [PawnIO](https://pawnio.eu) and restart the app.
 

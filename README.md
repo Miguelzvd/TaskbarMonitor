@@ -89,7 +89,7 @@ Five looks, chosen in the right-click menu under **Style**. Every block shows th
 
 ### Companion (kitten)
 
-A pixel-art cat lives on top of the monitor, with a 1 px outline. The mouse goes through it. Pick it under **Companion** in the menu: off, a gray, white, black or orange cat, or your own colors. **Customize…** opens a window with a live preview where you choose the fur, light fur, stripes, eyes, nose and outline colors, plus the bat mask: its color and whether the cat wears it only upside down, always or never.
+A pixel-art cat lives on top of the monitor, with a 1 px outline. The mouse goes through it. Pick it under **Companion** in the menu: off, a gray, white, black or orange cat, or your own colors. **Customize…** opens a window with a live preview where you choose the fur, light fur, stripes, eyes, nose and outline colors, plus the bat mask: its color and whether the cat wears it only upside down, always or never. The **Animations** tab in the same window turns each of its animations on or off.
 
 <p align="center">
   <img src="media/cat-colors.png" alt="The cat in four colors: gray, white, black and orange" width="560">
@@ -108,6 +108,8 @@ What it does depends on the PC:
 - **Sleeps** (curled up, breathing) after ~20 s with CPU and GPU below 8%; wakes at 15%
 
   <img src="media/cat-sleeping.gif" alt="Cat sleeping with Zzz" width="420">
+
+- **Swats the program you end**: end a program from a tooltip's list and it trots to that block, swats it and leaves a puff of dust. If the program can't be ended, it flattens its ears instead
 
 - **Pants**, wide-eyed and sweating, with usage ≥ 90%, RAM ≥ 92% or temperature ≥ 85°C (back to normal below 80% / 78°C)
 

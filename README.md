@@ -71,6 +71,7 @@ Then open **Taskbar Monitor** from your applications menu, or run `taskbar-monit
   <img src="media/loading.gif" alt="Animated skeleton in place of the numbers while loading" width="520">
 
 - One tooltip per block: hover CPU, GPU (with the VRAM in use/total/free) or RAM (in use, total and available)
+- Top processes in each tooltip: the programs using the most CPU, GPU or memory, five at a time with the mouse wheel for more (up to 40). Hover a row and click the red button to end that program, with a confirmation first
 - Fullscreen (app or game): the widget moves to the other monitor and returns when fullscreen ends; with a single monitor it hides. Windows' own windows (Start, Search, screen snipping) don't count
 - Stays above the taskbar without flicker when you click it (the taskbar owns the window)
 
@@ -126,6 +127,7 @@ Everything is configured from the **right-click menu**:
 | **Show** | Pick what the widget shows: CPU, GPU and RAM, and inside them the CPU and GPU temperatures, the VRAM and the RAM amount |
 | **Companion** | Off, or a gray, white, black or orange cat |
 | **Text size** | Small, Normal, Large or Extra large |
+| **Top processes** | How many programs each tooltip lists: Off, 5, 10, 20 or 40 |
 | **Update interval** | 0.5 / 1 / 2 / 5 s |
 | **Start with Windows** | Elevated scheduled task, no UAC at logon |
 

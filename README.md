@@ -89,7 +89,7 @@ Five looks, chosen in the right-click menu under **Style**. Every block shows th
 
 ### Companion (kitten)
 
-A pixel-art cat lives on top of the monitor, drawn in code with a 1 px outline. Its window is transparent and the mouse goes through it. Pick it under **Companion** in the menu: off, or a gray, white, black or orange cat.
+A pixel-art cat lives on top of the monitor, with a 1 px outline. The mouse goes through it. Pick it under **Companion** in the menu: off, a gray, white, black or orange cat, or your own colors. **Customize…** opens a window with a live preview where you choose the fur, light fur, stripes, eyes, nose and outline colors, plus the bat mask: its color and whether the cat wears it only upside down, always or never.
 
 <p align="center">
   <img src="media/cat-colors.png" alt="The cat in four colors: gray, white, black and orange" width="560">
@@ -125,7 +125,7 @@ Everything is configured from the **right-click menu**:
 | **Lock position** *(free mode)* | Fixes it where you dropped it. A small dot in the corner shows it's locked |
 | **Style** | Classic, Progress bars, Rings, Sparklines or Pills with icons |
 | **Show** | Pick what the widget shows: CPU, GPU and RAM, and inside them the CPU and GPU temperatures, the VRAM and the RAM amount |
-| **Companion** | Off, or a gray, white, black or orange cat |
+| **Companion** | Off, a gray, white, black or orange cat, or your own colors (**Customize…**) |
 | **Text size** | Small, Normal, Large or Extra large |
 | **Top processes** | How many programs each tooltip lists: Off, 5, 10, 20 or 40 |
 | **Update interval** | 0.5 / 1 / 2 / 5 s |

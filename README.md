@@ -9,7 +9,7 @@
   <img src="https://img.shields.io/badge/Linux-deb_%7C_rpm_%7C_AppImage-FCC624?logo=linux&logoColor=000" alt="Linux">
   <img src="https://img.shields.io/badge/macOS-Apple_Silicon-000000?logo=apple&logoColor=fff" alt="macOS on Apple Silicon">
   <img src="https://img.shields.io/badge/Windows-.NET_8_Desktop_Runtime-512BD4?logo=dotnet&logoColor=fff" alt=".NET 8 Desktop Runtime">
-  <img src="https://img.shields.io/badge/version-1.18.0-blue" alt="Version">
+  <img src="https://img.shields.io/badge/version-1.18.1-blue" alt="Version">
   <img src="https://img.shields.io/badge/Windows-administrator-orange" alt="Requires administrator">
 </p>
 

@@ -1,14 +1,15 @@
 <h1 align="center">Taskbar Monitor</h1>
 
 <p align="center">
-  Real-time hardware monitor anchored to the Windows 11 taskbar or the Linux desktop panel, with a pixel-art kitten for company
+  Real-time hardware monitor anchored to the Windows 11 taskbar, the Linux desktop panel or the Mac Dock, with a pixel-art kitten for company
 </p>
 
 <p align="center">
   <img src="https://img.shields.io/badge/Windows-11-0078D4?logo=windows11&logoColor=fff" alt="Windows 11">
   <img src="https://img.shields.io/badge/Linux-deb_%7C_rpm_%7C_AppImage-FCC624?logo=linux&logoColor=000" alt="Linux">
+  <img src="https://img.shields.io/badge/macOS-Apple_Silicon-000000?logo=apple&logoColor=fff" alt="macOS on Apple Silicon">
   <img src="https://img.shields.io/badge/Windows-.NET_8_Desktop_Runtime-512BD4?logo=dotnet&logoColor=fff" alt=".NET 8 Desktop Runtime">
-  <img src="https://img.shields.io/badge/version-1.12.0-blue" alt="Version">
+  <img src="https://img.shields.io/badge/version-1.18.0-blue" alt="Version">
   <img src="https://img.shields.io/badge/Windows-administrator-orange" alt="Requires administrator">
 </p>
 
@@ -56,6 +57,16 @@ Running the same command again updates to the newest version.
 
 Then open **Taskbar Monitor** from your applications menu, or run `taskbar-monitor`. It sits on your desktop panel and can start at login (right-click → **Start at login**). The kitten needs a desktop with transparency effects enabled.
 
+### macOS
+
+Needs a Mac with **Apple Silicon** (M1 or newer). No administrator rights are needed.
+
+1. Download `TaskbarMonitor-macos-arm64.dmg` from the [releases page](https://github.com/Miguelzvd/TaskbarMonitor/releases/latest).
+2. Open it and drag **Taskbar Monitor** to **Applications**.
+3. The first time, macOS says it can't check the developer. Open **System Settings → Privacy & Security**, scroll down and click **Open Anyway** next to Taskbar Monitor. After that it opens normally.
+
+It sits right above the Dock and stays out of the Dock and of the app switcher: right-click it for every option, including **Exit**.
+
 ## Features
 
 - **CPU**: total usage and temperature (Tctl/Tdie on AMD, Package on Intel)
@@ -89,7 +100,13 @@ Five looks, chosen in the right-click menu under **Style**. Every block shows th
 
 ### Companion (kitten)
 
-A pixel-art cat lives on top of the monitor, with a 1 px outline. The mouse goes through it. Pick it under **Companion** in the menu: off, a gray, white, black or orange cat, or your own colors. **Customize…** opens a window with a live preview where you choose the fur, light fur, stripes, eyes, nose and outline colors, plus the bat mask: its color and whether the cat wears it only upside down, always or never. The **Animations** tab in the same window turns each of its animations on or off.
+A pixel-art cat lives on top of the monitor, with a 1 px outline. The mouse goes through it. Pick it under **Companion** in the menu: off, a gray, white, black or orange cat, or your own colors. **Customize…** opens the **Companion** tab of **Settings**, with a live preview where you choose the fur, light fur, stripes, eyes, nose and outline colors, plus the bat mask: its color and whether the cat wears it only upside down, always or never. Its **Animations** page turns each of its animations on or off.
+
+### Hide and show
+
+Press **Ctrl+Alt+Shift+T** (on a Mac, **⌃⌥⇧T**) to hide the monitor and the kitten, and again to bring them back. You can also choose **Hide monitor** in the right-click menu. Pick other keys in **Settings → General**: click the box and press the new combination. If another app already uses it, Settings tells you and keeps the old one.
+
+On a Mac, while the monitor is hidden, the kitten waits in the menu bar at the top of the screen. Click it to bring the monitor back, or to show the CPU, GPU and RAM numbers next to it.
 
 <p align="center">
   <img src="media/cat-colors.png" alt="The cat in four colors: gray, white, black and orange" width="560">
@@ -117,21 +134,16 @@ What it does depends on the PC:
 
 ## Usage
 
-Everything is configured from the **right-click menu**:
+Everything is in **Settings** (right-click → **Settings…**), in four pages:
 
-| Item | What it does |
+| Page | What it has |
 |---|---|
-| **Mode → Docked to the taskbar** | Stays attached to the taskbar and can't be dragged |
-| **Position on the bar** *(docked mode)* | Right (next to the tray), Center or Left |
-| **Mode → Free (drag)** | Drag with the left button anywhere on screen (open/closed hand cursor) |
-| **Lock position** *(free mode)* | Fixes it where you dropped it. A small dot in the corner shows it's locked |
-| **Style** | Classic, Progress bars, Rings, Sparklines or Pills with icons |
-| **Show** | Pick what the widget shows: CPU, GPU and RAM, and inside them the CPU and GPU temperatures, the VRAM and the RAM amount |
-| **Companion** | Off, a gray, white, black or orange cat, or your own colors (**Customize…**) |
-| **Text size** | Small, Normal, Large or Extra large |
-| **Top processes** | How many programs each tooltip lists: Off, 5, 10, 20 or 40 |
-| **Update interval** | 0.5 / 1 / 2 / 5 s |
-| **Start with Windows** | Elevated scheduled task, no UAC at logon |
+| **General** | The hide/show keys, start at login (**Start with Windows** on Windows), the update interval (0.5 / 1 / 2 / 5 s) and, on a Mac, what the menu bar shows while the monitor is hidden |
+| **Monitor** | **Mode**: docked to the taskbar (above the Dock on a Mac, on the panel on Linux) at the right, center or left, or free to drag anywhere, with **Lock position** to fix it. **Style**: Classic, Progress bars, Rings, Sparklines or Pills with icons. **Text size**: Small, Normal, Large or Extra large. **Show**: CPU, GPU and RAM, and inside them the temperatures, the VRAM and the RAM amount. **Top processes**: how many programs each tooltip lists (Off, 5, 10, 20 or 40) |
+| **Companion** | Off, a gray, white, black or orange cat, or your own colors and animations |
+| **Menu** | Which of these options the right-click menu shows too |
+
+The **right-click menu** shows the options you pick in **Settings → Menu**. At first it has **Mode**, **Update interval**, **Hide monitor** and **Start at login**; **Settings…** and **Exit** are always there.
 
 Settings live in `%AppData%\TaskbarMonitor\settings.json`.
 
@@ -144,7 +156,8 @@ Settings live in `%AppData%\TaskbarMonitor\settings.json`.
 - In docked **Center** mode with centered icons on Windows 11, the monitor covers pinned icons. If the default position overlaps an icon, switch to free mode and drag it.
 - In free mode, over the taskbar, a flicker of a few milliseconds may still happen when clicking it.
 - Hybrid GPUs: the dedicated one has priority (NVIDIA > AMD > Intel).
-- Linux: moving away from fullscreen apps may not work on every desktop setup.
+- Linux: moving away from fullscreen apps may not work on every desktop setup, and on some desktops the hide/show keys aren't available.
+- Mac: Apple Silicon only. CPU and GPU temperatures aren't shown yet, and the process lists show your own programs, not the system's.
 
 ## License
 

@@ -9,7 +9,7 @@
   <img src="https://img.shields.io/badge/Linux-deb_%7C_rpm_%7C_AppImage-FCC624?logo=linux&logoColor=000" alt="Linux">
   <img src="https://img.shields.io/badge/macOS-Apple_Silicon-000000?logo=apple&logoColor=fff" alt="macOS on Apple Silicon">
   <img src="https://img.shields.io/badge/Windows-.NET_8_Desktop_Runtime-512BD4?logo=dotnet&logoColor=fff" alt=".NET 8 Desktop Runtime">
-  <img src="https://img.shields.io/badge/version-1.18.1-blue" alt="Version">
+  <img src="https://img.shields.io/badge/version-1.19.0-blue" alt="Version">
   <img src="https://img.shields.io/badge/Windows-administrator-orange" alt="Requires administrator">
 </p>
 
@@ -106,7 +106,7 @@ A pixel-art cat lives on top of the monitor, with a 1 px outline. The mouse goes
 
 Press **Ctrl+Alt+Shift+T** (on a Mac, **⌃⌥⇧T**) to hide the monitor and the kitten, and again to bring them back. You can also choose **Hide monitor** in the right-click menu. Pick other keys in **Settings → General**: click the box and press the new combination. If another app already uses it, Settings tells you and keeps the old one.
 
-On a Mac, while the monitor is hidden, the kitten waits in the menu bar at the top of the screen. Click it to bring the monitor back, or to show the CPU, GPU and RAM numbers next to it.
+While the monitor is hidden, a small kitten waits for you: in the menu bar at the top of the screen on a Mac, next to the clock on Windows, and in the panel's tray on Linux. Click it to bring the monitor back. Its menu can also show the CPU, GPU and RAM numbers: next to the kitten on a Mac, and when you hover it on Windows and Linux.
 
 <p align="center">
   <img src="media/cat-colors.png" alt="The cat in four colors: gray, white, black and orange" width="560">
@@ -156,7 +156,7 @@ Settings live in `%AppData%\TaskbarMonitor\settings.json`.
 - In docked **Center** mode with centered icons on Windows 11, the monitor covers pinned icons. If the default position overlaps an icon, switch to free mode and drag it.
 - In free mode, over the taskbar, a flicker of a few milliseconds may still happen when clicking it.
 - Hybrid GPUs: the dedicated one has priority (NVIDIA > AMD > Intel).
-- Linux: moving away from fullscreen apps may not work on every desktop setup, and on some desktops the hide/show keys aren't available.
+- Linux: moving away from fullscreen apps may not work on every desktop setup, and on some desktops the hide/show keys aren't available. The kitten in the tray needs a panel with a tray (on GNOME, the AppIndicator extension).
 - Mac: Apple Silicon only. CPU and GPU temperatures aren't shown yet, and the process lists show your own programs, not the system's.
 
 ## License
